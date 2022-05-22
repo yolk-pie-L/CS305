@@ -4,13 +4,22 @@ switch1:
 	sll 	$fp, $t1, 3
 	srl 	$fp, $fp, 23
 	beq 	$fp, $zero, switch1
+wait0:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait0
 	beq	$t1, $zero,case000
 	j switch2
 	
 case000: #先找到最高为1的位数,然后开始从两边往中间找,找的时候用and只留下要判断的那位,然后看等不等就行
 	add 	$t2, $t9, $zero # t2, a
+	sll 	$fp, $t9, 3
+	srl 	$fp, $fp, 23
 	beq 	$fp, $zero, case000
-	add 	$fp, $zero, $zero
+wait:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait
 
 	sll	$t2,$t2,16
 	srl	$t2,$t2,16
@@ -39,19 +48,27 @@ loop2:	beq	$t3,$t4,is1001
 	bne	$t6,$t5,not1001
 	j loop2
 	
-is1001:	addi	$t7, $zero, 1
+is1001:	addi	$t7, $zero, 1 # t7, sign bit
 	sll 	$t7, $t7, 31
 	add	$k0, $t2, $t7 #最高位作为sign bit
 	sll	$fp, $t9, 3
 	srl 	$fp, $fp, 21
-	bne 	$fp, $zero, is1001
+	beq 	$fp, $zero, is1001
+wait1:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait1
 	j switch1
 	
 not1001:
 	add	$k0, $t2, $zero
 	sll	$fp, $t9, 3
 	srl 	$fp, $fp, 21
-	bne 	$fp, $zero, not1001
+	beq 	$fp, $zero, not1001
+wait2:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait2
 	j switch1
 	
 switch2:addi	$a0,$zero,1
@@ -71,53 +88,91 @@ switch2:addi	$a0,$zero,1
 	j	switch1
 
 case001:
-	add 	$t1, $t9, $zero
-	sll 	$fp, $t1, 3
+	add 	$t1, $t9, $zero # t1 a
+	sll 	$fp, $t9, 3
 	srl 	$fp, $fp, 23
 	beq 	$fp, $zero, case001
+wait3:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait3
 	
 Outa:
 	add	$k0, $t1, $zero
+	sll 	$fp, $t9, 3
+	srl 	$fp, $fp, 23
 	beq 	$fp, $zero, Outa
-	add 	$fp, $zero, $zero
+wait4:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait4
+	
 Inb:
-	add 	$t2, $t9, $zero
+	sll 	$fp, $t9, 3
+	srl 	$fp, $fp, 23
+	add 	$t2, $t9, $zero # t2 b
 	beq 	$fp, $zero, Inb
-	add 	$fp, $zero, $zero
+wait5:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait5
 Outb:
 	add	$k0, $t2, $zero
+	sll 	$fp, $t9, 3
+	srl 	$fp, $fp, 23
 	beq 	$fp, $zero, Outb
-	add 	$fp, $zero, $zero
+wait6:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait6
 	j  	switch1
+
 
 case010:and	$t3, $t1, $t2
 	add 	$k0, $t3, $zero
+	sll 	$fp, $t9, 3
+	srl 	$fp, $fp, 23
 	beq 	$fp, $zero, case010
-	add	$fp, $zero, $zero
+wait7:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait7
 	j 	switch1
 	
 case011:or	$t3, $t1, $t2
 	add 	$k0, $t3, $zero
 	beq 	$fp, $zero, case011
-	add	$fp, $zero, $zero
+wait8:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait8
 	j 	switch1
 	
 case100:xor	$t3,$t1,$t2
 	add 	$k0, $t3, $zero
 	beq 	$fp, $zero, case100
-	add	$fp, $zero, $zero
+wait9:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait9
 	j 	switch1
 	
 case101:sllv	$t3,$t1,$t2
 	add 	$k0, $t3, $zero
 	beq 	$fp, $zero, case101
-	add	$fp, $zero, $zero
+wait10:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait10
 	j 	switch1
 	
 case110:srlv	$t3,$t1,$t2
 	add 	$k0, $t3, $zero
 	beq 	$fp, $zero, case110
-	add	$fp, $zero, $zero
+wait11:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait11
 	j 	switch1
 	
 case111:sll	$t3,$t1,16
@@ -125,5 +180,8 @@ case111:sll	$t3,$t1,16
 	srav	$t3,$t3,$t2
 	add 	$k0, $t3, $zero
 	beq 	$fp, $zero, case111
-	add	$fp, $zero, $zero
+wait12:
+	sll 	$fp, $t9, 3
+	srl	$fp, $fp, 23
+	bne	$fp, $zero, wait12
 	j 	switch1

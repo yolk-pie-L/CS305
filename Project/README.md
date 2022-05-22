@@ -5,6 +5,19 @@
 - [ ] 第一部分--cry
 - [ ] 第二部分--lx
 
+
+## 运行指令
+
+```sh
+python3 proxy.py -l log.txt -a 0.5 -p 7777 -P 53 -s 8081
+```
+参数解析
+-l log_file的路径
+-a alpha
+-p listen port
+-P DNS server port
+-s default webserver port, 可选参数
+
 ## docker
 
 进入容器
@@ -30,7 +43,7 @@ cd /autograder/netsim
 find / -name netsim.py
 ```
 
-## 当前阶段感想
+## 环境问题
 
 在vscode里面每次都要提交变化才能运行（好像）
 

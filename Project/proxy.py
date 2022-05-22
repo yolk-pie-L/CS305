@@ -1,5 +1,6 @@
 import math
 from multiprocessing.dummy import active_children
+import re
 import socket
 import sys
 import threading
@@ -10,11 +11,6 @@ from dns.query import udp
 from dns import *
 import dns
 import argparse
-
-"""
-This framework is just a reference for beginning. Feel free to change it!
-Have a good luck!
-"""
 
 def recv(s):
     """
@@ -53,10 +49,34 @@ def request_dns():
     query = message.make_query("xxx", dns.rdatatype.A,
                                         dns.rdataclass.IN)
 
-def calculate_throughput():
+def calculate_throughput(B: int, ts: float, tf: float, Tcurrent: float, a: float) -> float:
     """
-    Calculate throughput here.
+    calculate throughput
+
+    Parameters:
+    B: the length of the video trunk in bytes, ts: start time, tf: end time, a: alpha
+
+    Returns:
+    Tcurrent: current throughput
     """
+    Tnew = B * 8 / (1024 * (tf - ts))
+    Tcurrent = a * Tnew + (1 - a) * Tcurrent
+    return Tcurrent
+    
+
+def bitrate_selection() -> str:
+    raise NotImplementedError
+
+
+def write_to_log(f, time: float, duration: float, tput: float, \
+    avg_tput: float, bitrate: int, serverport: int, chunkname: str):
+    f.write(str(int(time)) + ' ' + str(duration) + ' ' + str(tput) + ' ' + str(avg_tput) + \
+        str(bitrate) + ' ' + str(serverport) + ' ' + chunkname + '\n')
+
+
+
+def bitrate_adaptation(B: int, ts: float, tf: float, Tcurrent: float, a: float, f) -> tuple:
+    Tcurrent = calculate_throughput(B, ts, tf, Tcurrent, a)
 
 
 class Proxy():
@@ -83,19 +103,25 @@ class Connection():
 
 
 if __name__ == '__main__':
-   
-    """
-    Parse command varibles first.
-    """
+    
+    # 解析命令行参数
     parser = argparse.ArgumentParser(description='start proxying......')
-    parser.add_argument('-p', '--port', required=True,
-                            help='listening port for proxy.')
+    parser.add_argument('-l', '--logfile', required=True, help='log file path')
+    parser.add_argument('-a', '--alpha', required=True, type=float, help='set value of alpha')
+    parser.add_argument('-p', '--port', required=True, type=int, help='listening port for proxy.')
+    parser.add_argument('-P', '--Port', required=True, type=int, help='DNS server port')
+    parser.add_argument('-s', '--webserverport', required=False, type=int, help='default webserver port')
+
     args = parser.parse_args()
+    
+    f=open(args.logfile, 'w')
 
     """
-    Start your proxy.
+    Start your proxy. 需要把f也传进来
     """
 
     accept(args.port)
+    
+    f.close()
     
 

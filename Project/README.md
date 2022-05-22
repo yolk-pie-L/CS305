@@ -17,7 +17,7 @@ docker run -it -p 7778:7778 -p 7779:7779 project:latest /bin/bash
 
 ```
 cd /autograder/netsim
-/netsim.py servers start -s servers/2servers
+./netsim.py servers start -s servers/2servers
 ```
 
 ## Linux

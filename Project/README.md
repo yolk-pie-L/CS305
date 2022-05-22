@@ -26,6 +26,14 @@ cd /autograder/netsim
 find / -name netsim.py
 ```
 
+## 当前阶段感想
+
+在vscode里面每次都要提交变化才能运行（好像）
+
+使用python3在容器外面进行编译  
+  
+
+
 ## 参考代码
 
 https://github.com/OmerBaddour/VideoCDN

@@ -1,6 +1,7 @@
 
 # README
 
+
 ## docker
 
 进入容器
@@ -31,7 +32,13 @@ find / -name netsim.py
 在vscode里面每次都要提交变化才能运行（好像）
 
 使用python3在容器外面进行编译  
-  
+
+安装pip包
+```sh
+apt-get update
+apt-get install python3
+pip3 install numpy
+```
 
 
 ## 参考代码

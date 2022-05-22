@@ -12,11 +12,11 @@
 python3 proxy.py -l log.txt -a 0.5 -p 7777 -P 53 -s 8081
 ```
 参数解析
--l log_file的路径
--a alpha
--p listen port
--P DNS server port
--s default webserver port, 可选参数
+-l log_file的路径  
+-a alpha  
+-p listen port  
+-P DNS server port  
+-s default webserver port, 可选参数  
 
 ## docker
 

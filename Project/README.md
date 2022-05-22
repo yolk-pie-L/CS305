@@ -1,7 +1,9 @@
 
 # README
 
-**使用flask**
+## 分工
+- [ ] 第一部分--cry
+- [ ] 第二部分--lx
 
 ## docker
 

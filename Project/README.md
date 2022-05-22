@@ -4,6 +4,7 @@
 ## 分工
 - [ ] 第一部分--cry
 - [ ] 第二部分--lx
+- [ ] 第四部分--lx
 
 
 ## 运行指令
@@ -48,7 +49,7 @@ find / -name netsim.py
 在vscode里面每次都要提交变化才能运行（好像）
 
 使用python3在容器外面进行编译  
-  
+
 
 
 安装pip包
@@ -59,6 +60,7 @@ sudo  apt-get install python3-pip
 pip3 install numpy
 ```
 
+安装不了dns可以安装dnspython，实现同样的效果
 
 ## 参考代码
 

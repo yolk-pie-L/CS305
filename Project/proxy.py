@@ -126,8 +126,13 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', required=True, type=int, help='listening port for proxy.')
     parser.add_argument('-P', '--Port', required=True, type=int, help='DNS server port')
     parser.add_argument('-s', '--webserverport', required=False, type=int, help='default webserver port')
+    parser.add_argument('-e', '--exit', required=False, choices=['exit', 'start'])
 
     args = parser.parse_args()
+
+    if args.exit == 'exit':
+        exit()
+        sys.exit(0)
     
     f=open(args.logfile, 'w')
 

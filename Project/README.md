@@ -44,6 +44,11 @@ cd /autograder/netsim
 find / -name netsim.py
 ```
 
+模糊寻找文件，从根目录下寻找所有后缀为.f4m的文件
+```sh
+find / -name "*.f4m"
+```
+
 ## 环境问题
 
 在vscode里面每次都要提交变化才能运行（好像）
@@ -61,6 +66,11 @@ pip3 install numpy
 ```
 
 安装不了dns可以安装dnspython，实现同样的效果
+
+VScode中打开代码
+```sh
+code code /com.docker.devenvironments.code/docker_setup/www/vod/big_buck_bunny.f4m
+```
 
 ## 参考代码
 

@@ -6,11 +6,17 @@ import sys
 import threading
 import time
 from threading import Thread
+from xml.dom.minidom import parseString
 
 from dns.query import udp
 from dns import *
 import dns
 import argparse
+
+
+bbbf4m="" # place the big_buck_bunny.f4m file contents here，判断如果不为空就不用存了（相当于缓存起来）
+bitrates=[] # 从bbbf4m解析得到的bitrates
+
 
 def recv(s):
     """
@@ -49,35 +55,38 @@ def request_dns():
     query = message.make_query("xxx", dns.rdatatype.A,
                                         dns.rdataclass.IN)
 
-def calculate_throughput(B: int, ts: float, tf: float, Tcurrent: float, a: float) -> float:
+
+def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, serverport: int, brow_req: str) -> tuple:
     """
-    calculate throughput
+    calculate throughput, choose appropriate bitrate, and write to log
 
     Parameters:
-    B: the length of the video trunk in bytes, ts: start time, tf: end time, a: alpha
+    B: the length of the video trunk in bytes, ts: start time, tf: end time, Told: previous throughput, \
+        a: alpha, f: fileIO, serverport: web server port, brow_req: request message of the browser
 
     Returns:
-    Tcurrent: current throughput
+    a tuple with the form (current throughput: float, bitrate selection: str)
     """
-    Tnew = B * 8 / (1024 * (tf - ts))
-    Tcurrent = a * Tnew + (1 - a) * Tcurrent
-    return Tcurrent
-    
-
-def bitrate_selection() -> str:
-    raise NotImplementedError
-
-
-def write_to_log(f, time: float, duration: float, tput: float, \
-    avg_tput: float, bitrate: int, serverport: int, chunkname: str):
-    f.write(str(int(time)) + ' ' + str(duration) + ' ' + str(tput) + ' ' + str(avg_tput) + \
-        str(bitrate) + ' ' + str(serverport) + ' ' + chunkname + '\n')
-
-
-
-def bitrate_adaptation(B: int, ts: float, tf: float, Tcurrent: float, a: float, f) -> tuple:
-    Tcurrent = calculate_throughput(B, ts, tf, Tcurrent, a)
-
+    # calculate throughput
+    T_new = B * 8 / (1024 * (tf - ts))
+    T_avg = a * T_new + (1 - a) * T_old
+    # bitrate selection
+    if bitrates:
+        doc = parseString(bbbf4m)
+        collection = doc.documentElement
+        media = collection.getElementsByTagName("media")
+        for m in media:
+            bitrates.append(int(m.attributes['bitrate'].value))
+        bitrates.sort(reverse=True)
+    T_choose=T_avg/1.5
+    for b in bitrates:
+        if b <= T_choose:
+            bitchoose = b
+            break
+    # write to log
+    f.write(str(int(time)) + ' ' + str(tf-ts) + ' ' + str(T_new) + ' ' + str(T_avg) + \
+        str(bitchoose) + ' ' + str(serverport) + ' ' + chunkname + '\n')
+    return (T_avg, bitchoose)
 
 class Proxy():
     """

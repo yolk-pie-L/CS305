@@ -58,6 +58,7 @@ find / -name "*.f4m"
 目前的依赖库
 - dnspython
 - numpy
+- matplotlib
 
 安装pip包
 ```sh
@@ -67,7 +68,9 @@ sudo  apt-get install python3-pip
 pip3 install numpy
 ```
 
-安装不了dns可以安装dnspython，实现同样的效果
+安装不了dns可以安装dnspython，实现同样的效果  
+matplotlib安装问题
+https://blog.csdn.net/qq_41221841/article/details/123114200
 
 VScode中打开代码
 ```sh

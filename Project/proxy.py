@@ -48,13 +48,17 @@ def modify_request(message):
     for client and leave big_buck_bunny.f4m for the use in proxy.
     """
 
-def request_dns():
-    """
-    Request dns server here. Specify the domain name as you want.
-    """
-    query = message.make_query("xxx", dns.rdatatype.A,
-                                        dns.rdataclass.IN)
-
+def request_dns(Port: int) -> int:
+    dns_resolver = resolver.Resolver()
+    dns_resolver.nameservers=['127.0.0.1']
+    dns_resolver.port=Port
+    result=dns_resolver.resolve(qname='localhost/index.html', rdtype=rdatatype.A)
+    web_port=0
+    for i in result.response.answer:
+        for j in i.items:
+            web_port=int(j.to_text())
+    return web_port
+    
 
 def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, serverport: int, chunkname: str) -> tuple:
     """
@@ -88,6 +92,7 @@ def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, 
     f.write(str(int(time)) + ' ' + str(tf-ts) + ' ' + str(T_new) + ' ' + str(T_avg) + \
         bitchoose + ' ' + str(serverport) + ' ' + chunkname + '\n')
     return (T_avg, bitchoose)
+
 
 class Proxy():
     """

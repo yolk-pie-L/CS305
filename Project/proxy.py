@@ -56,16 +56,16 @@ def request_dns():
                                         dns.rdataclass.IN)
 
 
-def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, serverport: int, brow_req: str) -> tuple:
+def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, serverport: int, chunkname: str) -> tuple:
     """
     calculate throughput, choose appropriate bitrate, and write to log
 
     Parameters:
     B: the length of the video trunk in bytes, ts: start time, tf: end time, Told: previous throughput, \
-        a: alpha, f: fileIO, serverport: web server port, brow_req: request message of the browser
+        a: alpha, f: fileIO, serverport: web server port, chunkname: Seg%d-Frag%d, e.g. Seg1-Frag2
 
     Returns:
-    a tuple with the form (current throughput: float, bitrate selection: str)
+    a tuple with the form (current_throughput: float, bitrate_selection: str)
     """
     # calculate throughput
     T_new = B * 8 / (1024 * (tf - ts))
@@ -81,11 +81,12 @@ def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, 
     T_choose=T_avg/1.5
     for b in bitrates:
         if b <= T_choose:
-            bitchoose = b
+            bitchoose = str(b)
             break
     # write to log
+    chunkname=bitchoose+chunkname
     f.write(str(int(time)) + ' ' + str(tf-ts) + ' ' + str(T_new) + ' ' + str(T_avg) + \
-        str(bitchoose) + ' ' + str(serverport) + ' ' + chunkname + '\n')
+        bitchoose + ' ' + str(serverport) + ' ' + chunkname + '\n')
     return (T_avg, bitchoose)
 
 class Proxy():

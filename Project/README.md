@@ -69,7 +69,7 @@ pip3 install numpy
 
 VScode中打开代码
 ```sh
-code code /com.docker.devenvironments.code/docker_setup/www/vod/big_buck_bunny.f4m
+code /com.docker.devenvironments.code/docker_setup/www/vod/big_buck_bunny.f4m
 ```
 
 ## 参考代码

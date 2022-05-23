@@ -55,7 +55,9 @@ find / -name "*.f4m"
 
 使用python3在容器外面进行编译  
 
-
+目前的依赖库
+- dnspython
+- numpy
 
 安装pip包
 ```sh

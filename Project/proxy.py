@@ -59,6 +59,14 @@ def request_dns(Port: int) -> int:
             web_port=int(j.to_text())
     return web_port
     
+def first_chunk_req()-> str:
+    doc = parseString(bbbf4m)
+    collection = doc.documentElement
+    media = collection.getElementsByTagName("media")
+    for m in media:
+        bitrates.append(int(m.attributes['bitrate'].value))
+    bitrates.sort(reverse=True)
+    return bitrates[-1]
 
 def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, serverport: int, chunkname: str) -> tuple:
     """
@@ -83,13 +91,13 @@ def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, 
             bitrates.append(int(m.attributes['bitrate'].value))
         bitrates.sort(reverse=True)
     T_choose=T_avg/1.5
+    bitchoose=''
     for b in bitrates:
         if b <= T_choose:
             bitchoose = str(b)
             break
     # write to log
-    chunkname=bitchoose+chunkname
-    f.write(str(int(time)) + ' ' + str(tf-ts) + ' ' + str(T_new) + ' ' + str(T_avg) + \
+    f.write(str(int(ts)) + ' ' + str(tf-ts) + ' ' + str(T_new) + ' ' + str(T_avg) + \
         bitchoose + ' ' + str(serverport) + ' ' + chunkname + '\n')
     return (T_avg, bitchoose)
 

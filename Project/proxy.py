@@ -20,7 +20,7 @@ bitrates = []  # 从bbbf4m解析得到的bitrates
 def recv(req, s, sock):
     try:
         while '\r\n\r\n' not in req:
-            req += sock.recv(1)  # receive the whole HTTP request
+            req += sock.recv(1)  # receive HTTP header
         return req
     except error:
         print('Oooops! Error happened when recv : ' + str(error))
@@ -105,33 +105,28 @@ def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, 
             bitrates.append(int(m.attributes['bitrate'].value))
         bitrates.sort(reverse=True)
     T_choose = T_avg / 1.5
+    bitchoose=''
     for b in bitrates:
         if b <= T_choose:
             bitchoose = str(b)
             break
     # write to log
     chunkname = bitchoose + chunkname
-    f.write(str(int(time)) + ' ' + str(tf - ts) + ' ' + str(T_new) + ' ' + str(T_avg) + \
+    f.write(str(int(ts)) + ' ' + str(tf - ts) + ' ' + str(T_new) + ' ' + str(T_avg) + \
             bitchoose + ' ' + str(serverport) + ' ' + chunkname + '\n')
-    return (T_avg, bitchoose)
+    return T_avg, bitchoose
 
 
 class Proxy(threading.Thread):
-    def __init__(self, sock, log_file, alpha, listen_port, dns_server_port, web_server_port=-1):
+    def __init__(self, sock, log_file, alpha, dns_server_port, web_server_port):
         threading.Thread.__init__(self)
-        self.connection = None
-        self.send_buffer = None
-        self.receive_buffer = None
-        self.sock = sock
+        self.sock = sock # browser connection
         self.log_file = log_file
         self.alpha = alpha
-        self.listen_port = listen_port
         self.web_server_port = web_server_port
         self.dns_server_port = dns_server_port
-        self.proxy_manifest_file = ''
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind("0.0.0.0")
-        server_socket.connect(("0.0.0.0", self.web_server_port))
+        server_socket.bind(("0.0.0.0",0))
         self.server_socket = server_socket
         self.count = 0
 
@@ -141,6 +136,7 @@ class Proxy(threading.Thread):
         self.server_socket.close()
 
     def run(self) -> None:
+        global bbbf4m
         t_current = 10.0
         bit_choose = '10'
         while not self.thread_stop:
@@ -148,23 +144,28 @@ class Proxy(threading.Thread):
             # Receive HTTP request from Browser
             browser_req = ''
             browser_req = recv(browser_req, self, self.sock)
+            web_server_port = self.web_server_port
+            if self.web_server_port is None:
+                web_server_port = request_dns(self.dns_server_port)
+            self.server_socket.connect(("0.0.0.0", web_server_port))
             # Check if request is for manifest file
             if '.f4m' in browser_req:
                 # Send HTTP request to server
-                send(browser_req, self, self.server_socket)
-                # Receive HTTP header of response from Server
-                server_resp = ''
-                server_resp = recv(server_resp, self, self.server_socket)
-                # Reseive HTTP body of response
-                proxy_len = int(re.search('(?<=Content-Length: )\d+', server_resp).group(0))
-                recvcount = 0
-                try:
-                    while recvcount < proxy_len:
-                        self.proxy_manifest_file += self.server_socket.recv(1)
-                        recvcount += 1
-                except error:
-                    print("Oooops! Error happened when receiving .f4m : "+self.proxy_manifest_file)
-                    self.stop()
+                if len(bbbf4m)==0:
+                    send(browser_req, self, self.server_socket)
+                    # Receive HTTP header of response from Server
+                    server_resp = ''
+                    server_resp = recv(server_resp, self, self.server_socket)
+                    # Reseive HTTP body of response
+                    proxy_len = int(re.search('(?<=Content-Length: )\d+', server_resp).group(0))
+                    recvcount = 0
+                    try:
+                        while recvcount < proxy_len:
+                            bbbf4m += self.server_socket.recv(1)
+                            recvcount += 1
+                    except error:
+                        print("Oooops! Error happened when receiving .f4m : ")
+                        self.stop()
                 # Modify browser response to be for browser manifest file
                 browser_req = modify_request(browser_req)
             # check if request is for a chunk
@@ -177,9 +178,7 @@ class Proxy(threading.Thread):
                     bit_choose = first_chunk_req()
                     self.count += 1
                 browser_req = browser_req[0:index_point_start] + bit_choose + browser_req[index_point_end:]
-            web_server_port = self.web_server_port
-            if self.web_server_port == -1:
-                web_server_port = request_dns(self.dns_server_port)
+
             t_s = time.time()
             # Send HTTP request to server
             send(browser_req, self, self.server_socket)
@@ -202,10 +201,8 @@ class Proxy(threading.Thread):
             if chunk_req:
                 up_to_chunkname = re.match('GET [\S]*', browser_req).group(0)
                 chunkname = up_to_chunkname[4:]
-            res = bitrate_adaptation(body_len, t_s, t_f, t_current, self.alpha, self.log_file, web_server_port,
+            t_current, bit_choose = bitrate_adaptation(body_len, t_s, t_f, t_current, self.alpha, self.log_file, web_server_port,
                                      chunkname)
-            t_current = res[0]
-            bit_choose = res[1]
             # Send HTTP response to Browser
             send(server_resp, self, self.sock)
 
@@ -237,6 +234,6 @@ if __name__ == '__main__':
     while True:
         # accept browser request and create browser_connection_socket
         sock, addr = socket.accept()  # browser connect
-        proxy = Proxy(sock, f, args.alpha, args.port, args.Port, args.webserverport)
+        proxy = Proxy(sock, f, args.alpha, args.Port, args.webserverport)
         proxys.append(proxy)
         proxy.start()

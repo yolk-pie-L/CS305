@@ -54,7 +54,7 @@ find / -name "*.f4m"
 file too short
 ```sh
 apt install libapr1
-``
+```
 ```sh
 chmod +x /usr/local/apache2/bin/httpd
 cd /usr/local/apache2/lib/

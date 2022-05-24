@@ -126,7 +126,7 @@ class Proxy(threading.Thread):
         self.web_server_port = web_server_port
         self.dns_server_port = dns_server_port
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind(("0.0.0.0",0))
+        server_socket.bind(("127.0.0.1",0))
         self.server_socket = server_socket
         self.count = 0
 
@@ -147,7 +147,7 @@ class Proxy(threading.Thread):
             web_server_port = self.web_server_port
             if self.web_server_port is None:
                 web_server_port = request_dns(self.dns_server_port)
-            self.server_socket.connect(("0.0.0.0", web_server_port))
+            self.server_socket.connect(("127.0.0.1", web_server_port))
             # Check if request is for manifest file
             if '.f4m' in browser_req:
                 # Send HTTP request to server

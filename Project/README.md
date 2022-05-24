@@ -51,6 +51,21 @@ find / -name "*.f4m"
 
 ## 环境问题
 
+file too short
+```sh
+apt install libapr1
+``
+```sh
+chmod +x /usr/local/apache2/bin/httpd
+cd /usr/local/apache2/lib/
+rm libaprutil-1.so.0
+ln -s libaprutil-1.so.0.5.3 libaprutil-1.so.0
+rm libexpat.so.0
+ln -s libexpat.so.0.5.0 libexpat.so.0
+rm libapr-1.so.0
+ln -s libapr-1.so.0.5.1 libapr-1.so.0
+```
+
 在vscode里面每次都要提交变化才能运行（好像）
 
 使用python3在容器外面进行编译  

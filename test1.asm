@@ -1,187 +1,209 @@
-.text 				
-switch1:
-	add 	$t1, $t9, $zero
-	sll 	$fp, $t1, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, switch1
-wait0:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait0
-	beq	$t1, $zero,case000
-	j switch2
+.data 0x0000
+	buf: .word 0x0000
+.text 0x0000
+Read0:
+	add 	$9, $25, $0 # $9=testcase
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Read0
 	
-case000: #先找到最高为1的位数,然后开始从两边往中间找,找的时候用and只留下要判断的那位,然后看等不等就行
-	add 	$t2, $t9, $zero # t2, a
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, case000
-wait:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait
+waitRead0:
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	bne		$30, $0, waitRead0
 
-	sll	$t2,$t2,16
-	srl	$t2,$t2,16
-	addi	$t3,$zero,16   # $t3 upnum
-	add	$t4,$zero,$zero    # $t4 lownum
+	srl 	$9, $9, 21
+
+Switch:
+	add 	$8, $0, $0 # $8=compare test case
+	beq		$9, $8, Case0
+	addi	$8, $8, 1
+	beq 	$9, $8, Case1
+	addi	$8, $8, 1
+	beq		$9, $8, Case2
+	addi	$8, $8, 1
+	beq 	$9, $8, Case3
+	addi	$8, $8, 1
+	beq		$9, $8, Case4
+	addi 	$8, $8, 1
+	beq 	$9, $8, Case5
+	addi 	$8, $8, 1
+	beq		$9, $8, Case6
+	addi 	$8, $8, 1
+	beq		$9, $8, Case7
+	j 		Read0
 	
-loop1:	subi	$t3,$t3,1
-	addi	$t5,$zero,1    # $t5 number1
-	sllv	$t5,$t5,$t3
-	and	$t6,$t2,$t5
-	beq	$t3,$zero,is1001
-	beq	$t6,$zero,loop1
-loop2:	beq	$t3,$t4,is1001
-	addi	$t7,$t4,1
-	beq	$t3,$t7,is1001
-	addi	$t5,$zero,1    # $t5 number1
-	sllv	$t5,$t5,$t3
-	and	$t5,$t2,$t5
-	srlv	$t5,$t5,$t3
-	subi	$t3,$t3,1
-	addi	$t6,$zero,1    # $t6 number2
-	sllv	$t6,$t6,$t4
-	and	$t6,$t2,$t6
-	srlv	$t6,$t6,$t4
-	addi	$t4,$t4,1
-	bne	$t6,$t5,not1001
+Case0:
+	add		$10, $25, $0 # a
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Case0
+
+Wait0:
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	bne		$30, $0, Wait0
+	
+	andi	$10, $10, 0xffff
+
+	sll		$10, $10, 16
+	srl		$10, $10, 16
+	addi	$11, $0, 16   # $11 upnum
+	add		$12, $0, $0    # $12 lownum
+	
+loop1:	addi	$11, $11,-1
+	addi	$13, $0, 1    # $13 number1
+	sllv	$13, $13, $11
+	and		$14, $10, $13
+	beq		$11, $0, is1001
+	beq		$14, $0, loop1
+loop2:	beq	$11, $12, is1001
+	addi	$t7, $12, 1
+	beq		$11, $t7, is1001
+	addi	$13, $0, 1    # $13 number1
+	sllv	$13, $13, $11
+	and		$13, $10, $13
+	srlv	$13, $13, $11
+	addi	$11, $11, -1
+	addi	$14, $0, 1    # $14 number2
+	sllv	$14, $14, $12
+	and	 	$14, $10, $14
+	srlv	$14, $14, $12
+	addi	$12, $12, 1
+	bne		$14, $13, not1001
 	j loop2
-	
-is1001:	addi	$t7, $zero, 1 # t7, sign bit
-	sll 	$t7, $t7, 31
-	add	$k0, $t2, $t7 #最高位作为sign bit
-	sll	$fp, $t9, 3
-	srl 	$fp, $fp, 21
-	beq 	$fp, $zero, is1001
+
+is1001:	addi	$t7, $0, 1 # t7, sign bit
+	sll 	$t7, $t7, 23
+	add		$26, $10, $t7 #the highest bit is sign bit
+	sll		$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, is1001
 wait1:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait1
-	j switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait1
+	j 	Read0
 	
 not1001:
-	add	$k0, $t2, $zero
-	sll	$fp, $t9, 3
-	srl 	$fp, $fp, 21
-	beq 	$fp, $zero, not1001
+	add		$26, $10, $0
+	sll		$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, not1001
 wait2:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait2
-	j switch1
-	
-switch2:addi	$a0,$zero,1
-	beq	$t1,$a0,case001
-	addi	$a0,$a0,1
-	beq	$t1,$a0,case010
-	addi	$a0,$a0,1
-	beq	$t1,$a0,case011
-	addi	$a0,$a0,1
-	beq	$t1,$a0,case100
-	addi	$a0,$a0,1
-	beq	$t1,$a0,case101
-	addi	$a0,$a0,1
-	beq	$t1,$a0,case110
-	addi	$a0,$a0,1
-	beq	$t1,$a0,case111
-	j	switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait2
+	j 		Read0
 
-case001:
-	add 	$t1, $t9, $zero # t1 a
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, case001
+
+
+Case1:
+	add 	$11, $25, $0 # 11=a
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Case1
 wait3:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait3
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait3
 	
+	andi	$11, $11, 0xffff
 Outa:
-	add	$k0, $t1, $zero
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, Outa
+	add		$26, $11, $0
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Outa
 wait4:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait4
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait4
 	
 Inb:
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	add 	$t2, $t9, $zero # t2 b
-	beq 	$fp, $zero, Inb
+	add 	$12, $25, $0 # 12=b
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Inb
 wait5:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait5
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait5
+	
+	andi 	$12, $12, 0xffff
 Outb:
-	add	$k0, $t2, $zero
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, Outb
+	add		$26, $12, $0
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Outb
 wait6:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait6
-	j  	switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait6
+	j  		Read0
 
 
-case010:and	$t3, $t1, $t2
-	add 	$k0, $t3, $zero
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, case010
+Case2:and	$26, $11, $12
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Case2
 wait7:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait7
-	j 	switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait7
+	j 	Read0
 	
-case011:or	$t3, $t1, $t2
-	add 	$k0, $t3, $zero
-	beq 	$fp, $zero, case011
+Case3:or	$26, $11, $12
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Case3
 wait8:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait8
-	j 	switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait8
+	j 	Read0
 	
-case100:xor	$t3,$t1,$t2
-	add 	$k0, $t3, $zero
-	beq 	$fp, $zero, case100
+Case4:xor	$26, $11, $12
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	beq 	$30, $0, Case4
 wait9:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait9
-	j 	switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait9
+	j 	Read0
 	
-case101:sllv	$t3,$t1,$t2
-	add 	$k0, $t3, $zero
-	beq 	$fp, $zero, case101
+Case5:sllv	$26, $11, $12
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	beq 	$30, $0, Case5
 wait10:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait10
-	j 	switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait10
+	j 		Read0
 	
-case110:srlv	$t3,$t1,$t2
-	add 	$k0, $t3, $zero
-	beq 	$fp, $zero, case110
+Case6:srlv	$26,$11,$12
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	beq 	$30, $0, Case6
+
 wait11:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait11
-	j 	switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait11
+	j 		Read0
 	
-case111:sll	$t3,$t1,16
-	sra	$t3,$t3,16
-	srav	$t3,$t3,$t2
-	add 	$k0, $t3, $zero
-	beq 	$fp, $zero, case111
+
+Case7:sll	$11, $11, 16
+	sra		$11, $11, 16
+	srav	$26, $11, $12
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	beq 	$30, $0, Case7
+
 wait12:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait12
-	j 	switch1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait12
+	j 	Read0
+

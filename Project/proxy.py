@@ -1,6 +1,5 @@
 import math
 import re
-import socket
 from socket import socket, AF_INET, SOCK_STREAM, error
 import sys
 import threading
@@ -20,7 +19,7 @@ bitrates = []  # 从bbbf4m解析得到的bitrates
 def recv(req, s, sock):
     try:
         while '\r\n\r\n' not in req:
-            req += sock.recv(1)  # receive HTTP header
+            req += sock.recv(1).decode('ascii')  # receive HTTP header
         return req
     except error:
         print('Oooops! Error happened when recv : ' + str(error))
@@ -45,7 +44,7 @@ def accept(PORT: int):
     """
     you should bind the ip of your socket to 0.0.0.0 to make the proxy work well
     """
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock = socket(AF_INET, SOCK_STREAM)
     sock.bind(("0.0.0.0", PORT))
     return sock
 
@@ -118,17 +117,16 @@ def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, 
 
 
 class Proxy(threading.Thread):
-    def __init__(self, sock, log_file, alpha, dns_server_port, web_server_port):
+    def __init__(self, sock,server_socket, log_file, alpha, dns_server_port, web_server_port):
         threading.Thread.__init__(self)
         self.sock = sock # browser connection
         self.log_file = log_file
         self.alpha = alpha
         self.web_server_port = web_server_port
         self.dns_server_port = dns_server_port
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind(("127.0.0.1",0))
         self.server_socket = server_socket
         self.count = 0
+        self.thread_stop = False
 
     def stop(self):
         self.thread_stop = True
@@ -147,7 +145,7 @@ class Proxy(threading.Thread):
             web_server_port = self.web_server_port
             if self.web_server_port is None:
                 web_server_port = request_dns(self.dns_server_port)
-            self.server_socket.connect(("127.0.0.1", web_server_port))
+            self.server_socket.connect(("0.0.0.0", web_server_port))
             # Check if request is for manifest file
             if '.f4m' in browser_req:
                 # Send HTTP request to server
@@ -228,12 +226,15 @@ if __name__ == '__main__':
 
     f = open(args.logfile, 'w')
 
-    socket = accept(args.port)  # browser listen
-    socket.listen(1000)
+    browser_socket = accept(args.port)  # browser listen
+    browser_socket.listen(1000)
+
+    server_socket = socket(AF_INET, SOCK_STREAM)
+    server_socket.bind(("127.0.0.1", 0))
 
     while True:
         # accept browser request and create browser_connection_socket
-        sock, addr = socket.accept()  # browser connect
-        proxy = Proxy(sock, f, args.alpha, args.Port, args.webserverport)
+        sock, addr = browser_socket.accept()  # browser connect
+        proxy = Proxy(sock,server_socket, f, args.alpha, args.Port, args.webserverport)
         proxys.append(proxy)
         proxy.start()

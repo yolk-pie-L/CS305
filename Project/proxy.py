@@ -19,7 +19,7 @@ bitrates = []  # 从bbbf4m解析得到的bitrates
 def recv(req, s, sock):
     try:
         while '\r\n\r\n' not in req:
-            req += sock.recv(1).decode('ascii')  # receive HTTP header
+            req += sock.recv(1).decode()  # receive HTTP header
         return req
     except error:
         print('Oooops! Error happened when recv : ' + str(error))
@@ -28,7 +28,7 @@ def recv(req, s, sock):
 
 def send(req, s, sock):
     try:
-        sock.send(req.encode("ascii"))
+        sock.send(req.encode(encoding='gbk'))
     except error:
         print('Oooops! Error happened when send : ' + str(error))
         s.stop()
@@ -117,14 +117,14 @@ def bitrate_adaptation(B: int, ts: float, tf: float, T_old: float, a: float, f, 
 
 
 class Proxy(threading.Thread):
-    def __init__(self, sock, log_file, alpha, dns_server_port, web_server_port):
+    def __init__(self, sock,server_socket, log_file, alpha, dns_server_port, web_server_port):
         threading.Thread.__init__(self)
         self.sock = sock # browser connection
         self.log_file = log_file
         self.alpha = alpha
         self.web_server_port = web_server_port
         self.dns_server_port = dns_server_port
-        self.server_socket = None
+        self.server_socket = server_socket
         self.count = 0
         self.thread_stop = False
 
@@ -145,8 +145,6 @@ class Proxy(threading.Thread):
             web_server_port = self.web_server_port
             if self.web_server_port is None:
                 web_server_port = request_dns(self.dns_server_port)
-            self.server_socket = socket(AF_INET, SOCK_STREAM)
-            self.server_socket.bind(("127.0.0.1", 0))
             self.server_socket.connect(("0.0.0.0", web_server_port))
             # Check if request is for manifest file
             if '.f4m' in browser_req:
@@ -161,7 +159,7 @@ class Proxy(threading.Thread):
                     recvcount = 0
                     try:
                         while recvcount < proxy_len:
-                            bbbf4m += self.server_socket.recv(1)
+                            bbbf4m += self.server_socket.recv(1).decode()
                             recvcount += 1
                     except error:
                         print("Oooops! Error happened when receiving .f4m : ")
@@ -191,7 +189,7 @@ class Proxy(threading.Thread):
                 recvcount = 0
                 try:
                     while recvcount < body_len:
-                        server_resp += self.server_socket.recv(1).decode("ascii")
+                        server_resp += self.server_socket.recv(1).decode()
                         recvcount += 1
                 except error:
                     print("Oooops! Error happened when receive : "+server_resp)
@@ -231,10 +229,12 @@ if __name__ == '__main__':
     browser_socket = accept(args.port)  # browser listen
     browser_socket.listen(1000)
 
+    server_socket = socket(AF_INET, SOCK_STREAM)
+    server_socket.bind(("127.0.0.1", 0))
+
     while True:
         # accept browser request and create browser_connection_socket
         sock, addr = browser_socket.accept()  # browser connect
-        proxy = Proxy(sock, f, args.alpha, args.Port, args.webserverport)
-        print("aaaa")
+        proxy = Proxy(sock,server_socket, f, args.alpha, args.Port, args.webserverport)
         proxys.append(proxy)
         proxy.start()

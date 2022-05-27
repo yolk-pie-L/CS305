@@ -27,7 +27,7 @@ docker run -it -p 7778:7778 -p 7779:7779 project:latest /bin/bash
 运行netsim.py
 
 ```
-/root/CS305-proj/docker_setup/netsim/netsim.py
+cd /root/CS305-proj/docker_setup/netsim
 ./netsim.py servers start -s servers/2servers
 ```
 

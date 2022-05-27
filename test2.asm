@@ -1,286 +1,346 @@
-#25号, $t9寄存器当作读入的数据，$k0寄存器作为输出,$fp作为确认
-.data
-	data0: .space 40
-	data1: .space 40
-	data2: .space 40
-	data3: .space 40
+.data 0x0000
+	data0: .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	data1: .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	data2: .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	data3: .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-.text
-	
-	addi $t1, $zero, 0
-	
-	# 读入测试样例
+.text 0x0000
 ReadTestCase:
-	add 	$t0, $t9, $zero # $t0=测试用例编号
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, ReadTestCase
+	add 	$8, $25, $0 # 8=readtestcase number
+	add 	$26, $8, $0
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, ReadTestCase
 wait0:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait0
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait0
 	
-	# 判断是哪个测试用例
-	beq $t0, $t1, Case0
-	addi $t1, $t1, 1
-	beq $t0, $t1, Case1
-	addi $t1, $t1, 1
-	beq $t0, $t1, Case2
-	addi $t1, $t1, 1
-	beq $t0, $t1, Case3
-	addi $t1, $t1, 1
-	beq $t0, $t1, Case4
-	addi $t1, $t1, 1
-	beq $t0, $t1, Case5
-	addi $t1, $t1, 1
-	beq $t0, $t1, Case6
-	addi $t1, $t1, 1
-	beq $t0, $t1, Case7
-	j ReadTestCase
+	srl 	$8, $8, 21
+	addi 	$9, $0, 0
+	beq 	$8, $9, Case0
+	addi 	$9, $9, 1
+	beq		$8, $9, Case1
+	addi 	$9, $9, 1
+	beq 	$8, $9, Case2
+	addi 	$9, $9, 1
+	beq 	$8, $9, Case3
+	addi 	$9, $9, 1
+	beq 	$8, $9, Case4
+	addi 	$9, $9, 1
+	beq 	$8, $9, Case5
+	addi 	$9, $9, 1
+	beq 	$8, $9, Case6
+	addi 	$9, $9, 1
+	beq 	$8, $9, Case7
+	j 		ReadTestCase
 	
 
-# 测试用例0	
-Case0: #读入有几个数据
-	add 	$a0, $t9, $zero # $a0=数据个数
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, Case0
+Case0:
+	addi 	$26, $0, 10
+	add 	$28, $25, $0 #4=number
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Case0
 wait1:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait1
-	subi 	$v0, $a0, 1
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait1
+
+	andi 	$28, $28, 0xff
+	addi 	$27, $28, -1 #2=number-1
 	
-	add $a1, $zero, $zero # 当前记录了几个
-Loop0:
-Read01: # 读入数组中的数据
-	add $s0, $t9, $zero # $s0=存储的数据
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq $fp, $zero, Read01
+	add 	$5, $0, $0 # current id of data read in
+
+Read01: # read data of the array
+	add 	$16, $25, $0 # data read in
+	addi 	$26, $5, 1
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Read01
 wait2:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait2
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait2
 	
-	sll $a2, $a1, 2
-	sw $s0, data0($a2)
+	sll 	$6, $5, 2
+	andi	$16, $16, 0xff
+	sw 		$16, data0($6)
 	
-	addi $a1, $a1, 1
-	bne $a1, $a0, Loop0
-	j ReadTestCase
+	addi 	$5, $5, 1
+	beq 	$5, $28, ReadTestCase
+	j 		Read01
 	
 	
-Case1: # 测试样例1
-	add $a1, $zero, $zero
+Case1: 
+	add $5, $0, $0
 Loop10:
-	sll $a2, $a1, 2
-	lw $a3, data0($a2)
-	sw $a3, data1($a2)
-	addi $a1, $a1, 1
-	bne $a0, $a1, Loop10
+	sll $6, $5, 2
+	lw $7, data0($6)
+	sw $7, data1($6)
+	addi $5, $5, 1
+	bne $28, $5, Loop10
 	
-	add $a1, $zero, $zero
+	add $5, $0, $0
 	# bubble sort
-Loop11: # $a1控制外层循环，$a2控制内层循环
-	add $a2, $zero, $zero
-	Loop12: # $a3存放第一个数据的地址，$s3存放第二个数据的地址
-		sll $a3, $a2, 2
-		lw $s0, data1($a3)
-		addi $s3, $a2, 1
-		sll $s3, $s3, 2
-		lw $s1, data1($s3)
-		sltu $s2, $s1, $s0
-		beq $s2, $zero, Swap1 # 如果$s0小于$s1，则继续循环，否则交换
-		sw $s0, data1($s3)	
-		sw $s1, data1($a3)
+Loop11: # 
+	add $6, $0, $0
+	Loop12: #
+		sll $7, $6, 2
+		lw $16, data1($7)
+		addi $19, $6, 1
+		sll $19, $19, 2
+		lw $17, data1($19)
+		sltu $18, $17, $16
+		beq $18, $0, Swap1 # 
+		sw $16, data1($19)	
+		sw $17, data1($7)
 	Swap1:
-		addi $a2, $a2, 1
-		bne $a2, $v0, Loop12
-	addi $a1, $a1, 1 
-	bne $a1, $a0, Loop11
+		addi $6, $6, 1
+		bne $6, $27, Loop12
+	addi $5, $5, 1 
+	bne $5, $28, Loop11
 	
 	j ReadTestCase
 	
 
-Case2:  # 测试用例2
-	add $a1, $zero, $zero
+Case2:  #
+	add $5, $0, $0
 Loop20:
-	sll $a2, $a1, 2
-	lw $a3, data1($a2)
-	andi $s0, $a3, 256
-	srl $s0, $s0, 7
-	beq $s0, $zero, Store20
-	andi $a3, $a3, 255
-	sub $a3, $zero, $a3
+	sll $6, $5, 2
+	lw $7, data1($6)
+	andi $16, $7, 128 # get the sign bit
+	srl $16, $16, 7
+	beq $16, $0, Store20 # if it's positive
+	andi $7, $7, 127
+	sub $7, $0, $7 # turn it to complementary code
 	
 Store20:
-	sw $a3, data2($a2)
-	addi $a1, $a1, 1
-	bne $a0, $a1, Loop10
+	sw $7, data2($6)
+	addi $5, $5, 1
+	bne $28, $5, Loop20
 	j ReadTestCase
 	
 	
-Case3: # 测试用例3
-	add $a1, $zero, $zero
+Case3: # 
+	add $5, $0, $0
 Loop30:
-	sll $a2, $a1, 2
-	lw $a3, data2($a2)
-	sw $a3, data3($a2)
-	addi $a1, $a1, 1
-	bne $a0, $a1, Loop10
+	sll $6, $5, 2
+	lw $7, data2($6)
+	sw $7, data3($6)
+	addi $5, $5, 1
+	bne $28, $5, Loop30
 	
-	add $a1, $zero, $zero
+	add $5, $0, $0
 	# bubble sort
-Loop31: # $a1控制外层循环，$a2控制内层循环
-	add $a2, $zero, $zero
-	Loop32: # $a3存放第一个数据的地址，$s3存放第二个数据的地址
-		sll $a3, $a2, 2
-		lw $s0, data1($a3)
-		addi $s3, $a2, 1
-		sll $s3, $s3, 2
-		lw $s1, data1($s3)
-		slt $s2, $s1, $s0 # 如果s1比s0小，s2则为1，跳转至继续循环
-		beq $s2, $zero, Swap3 # 如果$s0小于$s1，则继续循环，否则交换
-		sw $s0, data1($s3)
-		sw $s1, data1($a3)	
+Loop31: # 
+	add $6, $0, $0
+	Loop32: # 
+		sll $7, $6, 2
+		lw $16, data3($7)
+		addi $19, $6, 1
+		sll $19, $19, 2
+		lw $17, data3($19)
+		slt $18, $17, $16 # 
+		beq $18, $0, Swap3 # 
+		sw $16, data3($19)
+		sw $17, data3($7)	
 	Swap3:
-		addi $a2, $a2, 1
-		bne $a2, $v0, Loop12
-	addi $a1, $a1, 1 
-	bne $a1, $a0, Loop11
+		addi $6, $6, 1
+		bne $6, $27, Loop32
+	addi $5, $5, 1 
+	bne $5, $28, Loop31
 	
 	j ReadTestCase
 
 
 Case4:
-	add 	$t0, $t9, $zero
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, Case4
+	add 	$8, $25, $0
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Case4
 wait3:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait3
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait3
 	
-	addi $t1, $zero, 3
-	beq $t1, $t0, Case43
-	# 数据集1
-	lw $s0, data1
-	sub $a1, $a0, 1
-	sll $a1, $a1, 2
-	lw $s1, data1($a1)
-	j Out40
+	andi	$8, $8, 0xff
+	addi	$9, $0, 3
+	beq		$9, $8, Case43
+
+	lw	 	$16, data1($0)
+	addi 	$5, $28, -1
+	sll 	$5, $5, 2
+	lw 		$17, data1($5)
+	j 		Out40
 Case43:
-	lw $s0, data3
-	sub $a1, $a0, 1
-	sll $a1, $a1, 2
-	lw $s1, data3($a1)
+	lw 		$16, data3($0)
+	addi 	$5, $28, -1
+	sll 	$5, $5, 2
+	lw 		$17, data3($5)
 Out40:
-	sub $s2, $s1, $s0
-	add $k0, $zero, $s2
-	beq $fp, $zero, Out40
+	sub 	$18, $17, $16
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	add 	$26, $0, $18
+	beq 	$30, $0, Out40
 wait4:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait4
-	j ReadTestCase
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait4
+	j 		ReadTestCase
 	
 
 Case5:
+	add 	$8, $8, $0
 Read50:
-	add $t0, $t9, $zero # 哪个数据集
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq $fp, $zero, Read50
+	add 	$8, $25, $0 # id of dataset
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Read50
 wait5:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait5
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait5
+
 Read51:
-	add $t1, $t9, $zero # 第几个元素
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq $fp, $zero, Read51
+	add 	$9, $25, $0 # id of data
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Read51
 wait6:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait6
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait6
 	
-	addi $s0, $zero, 3
-	beq $t0, $s0, Case53
+	andi	$8, $8, 0xff
+	andi	$9, $9, 0xff
+	sll 	$9, $9, 2
+	addi 	$16, $0, 3
+	beq 	$8, $16, Case53
 Case51:
-	lw $s0, data1($t1)
-	add $k0, $s0, $zero
-	beq $fp, $zero, Case51
+	lw 		$16, data1($9)
+	andi 	$16, $16, 0xff
+	add 	$26, $16, $0
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	beq 	$30, $0, Case51
 wait7:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait7
-	j ReadTestCase
+	addi 	$26, $26, 0xf
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait7
+	j 		ReadTestCase
 	
 Case53:
-	lw $s0, data3($t1)
-	add $k0, $s0, $zero
-	beq $fp, $zero, Case53
+	lw 		$16, data3($9)
+	andi 	$26, $16, 0xff
+	sll 	$30, $25, 11
+
+	srl		$30, $30, 31
+	beq 	$30, $0, Case53
 wait8:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait8
-	j ReadTestCase
-	
+	addi 	$26, $26, 0xf
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait8
+	j 		ReadTestCase
 	
 Case6:	
-	add 	$s1, $t9, $zero # 数据集
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, Case6
+	add 	$17, $25, $0 # 17=id of dataset
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Case6
 wait9:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait9
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait9
+	andi 	$17, $17, 0xff
 Read62:
-	add 	$s2, $t9, $zero # s2=index
-	sll 	$fp, $t9, 3
-	srl 	$fp, $fp, 23
-	beq 	$fp, $zero, Read62
+	add 	$18, $25, $0 # 18=id
+	sll 	$30, $25, 11
+	srl 	$30, $30, 31
+	beq 	$30, $0, Read62
 wait10:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait10
-	
-	sll	$s2,$s2,2
-	addi 	$s3,$zero,2
-	beq 	$s1,$s3,Case62
-	addi 	$s3,$zero,3
-	beq 	$s1,$s3,Case63
-Case61:	lw 	$s4,data1($s2)
-	add	$s5, $zero, $zero
-	j 	Branch0
-Case62:	lw 	$s4,data2($s2)
-	j 	Out60
-Case63:	lw 	$s4,data3($s2)
-Out60:	add	$s5,$s4,$zero  # $s4=original data, $s5=symbol bit
-	srl	$s5,$s5,7
-	beq	$s5,$zero,Branch0
-	addi	$s5,$zero,1
-	sub	$s4,$zero,$s4
-Branch0:sll	$s5, $s5, 8
-	addi	$s6,$zero,126
-Loop6:	addi	$s6,$s6,1
-	srl	$s4,$s4,1
-	bne	$s4,$zero,Loop6
-	# 将符号位和指数位放在一个register里面，为低位8~0，8为符号位
-	or 	$s6, $s6, $s5
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait10
+	andi	$18, $18, 0xff
+
+	sll		$18,$18,2
+	addi 	$19,$0,2
+	beq 	$17,$19,Case62
+	addi 	$19,$0,3
+	beq 	$17,$19,Case63
+Case61:	lw 	$20,data1($18)
+	add		$21, $0, $0
+	j 		Branch0
+Case62:	lw 	$20, data2($18)
+	j 		Out60
+Case63:	lw 	$20, data3($18)
+Out60:	add	$21, $20, $0  # $20=original data, $21=symbol bit
+	srl		$21, $21,8
+	beq		$21, $0,Branch0
+	addi	$21, $0,1
+	sub		$20, $0,$20
+Branch0:sll	$21, $21, 8
+	addi	$22, $0,126
+Loop6:	addi	$22, $22,1
+	srl		$20, $20,1
+	bne		$20, $0, Loop6
+	sll		$21, $21, 8
+	or 		$22, $22, $21
 Out61:
-	add	$k0, $s6, $zero
-	beq 	$fp, $zero, Out61
+	add		$26, $22, $0
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	beq 	$30, $0, Out61
 wait11:
-	sll 	$fp, $t9, 3
-	srl	$fp, $fp, 23
-	bne	$fp, $zero, wait11
-	j 	ReadTestCase
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait11
+	j 		ReadTestCase
 	
 Case7:
-	
+	add 	$1, $25, $0 #1=id
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	beq		$30, $0, Case7
+wait12:
+	sll 	$30, $25, 11
+	srl		$30, $30, 31
+	bne		$30, $0, wait12
 
+	andi	$1, $1, 0xff
+	sll 	$1, $1, 2
+	lw		$27, data0($1)
+	add		$20, $27, $0
+	andi  	$27, $27, 0xff
+	 
+	add	$21, $20,$0  # $20=original data, $21=symbol bit
+	srl		$21, $21,8
+	beq		$21, $0,Branch1
+	addi	$21, $0,1
+	sub		$20, $0,$20
+Branch1:sll	$21, $21, 8
+	addi	$22, $0,126
+Loop70:	addi	$22, $22,1
+	srl		$20, $20,1
+	bne		$20, $0, Loop70
+	sll		$21, $21, 8
+	or 		$22, $22, $21 # float representation
+
+Loop71:
+	addi 	$3, $0, 1
+	sll 	$3, $3, 25
+	add		$28, $0, $0
+Loop711:
+	add 	$26, $27, $0
+	addi	$28, $28, 1
+	bne		$28, $3, Loop711
+	add 	$28, $0, $0
+Loop712:
+	add 	$26, $22, $0
+	addi 	$28, $28, 1
+	bne		$28, $3, Loop712
+	j 		Loop71

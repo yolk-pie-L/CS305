@@ -45,6 +45,8 @@ Wait0:
 	bne		$30, $0, Wait0
 	
 	andi	$10, $10, 0xffff
+	addi 	$1, $0, 2
+	beq 	$10, $1, not1001
 
 	sll		$10, $10, 16
 	srl		$10, $10, 16
@@ -206,4 +208,3 @@ wait12:
 	srl		$30, $30, 31
 	bne		$30, $0, wait12
 	j 	Read0
-

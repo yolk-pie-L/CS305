@@ -1,11 +1,6 @@
 
 # README
 
-## 分工
-- [ ] 第一部分--cry
-- [ ] 第二部分--lx
-- [ ] 第四部分--lx
-
 
 ## 运行指令
 
@@ -32,7 +27,7 @@ docker run -it -p 7778:7778 -p 7779:7779 project:latest /bin/bash
 运行netsim.py
 
 ```
-cd /autograder/netsim
+/root/CS305-proj/docker_setup/netsim/netsim.py
 ./netsim.py servers start -s servers/2servers
 ```
 
@@ -65,10 +60,6 @@ ln -s libexpat.so.0.5.0 libexpat.so.0
 rm libapr-1.so.0
 ln -s libapr-1.so.0.5.1 libapr-1.so.0
 ```
-
-在vscode里面每次都要提交变化才能运行（好像）
-
-使用python3在容器外面进行编译  
 
 目前的依赖库
 - dnspython

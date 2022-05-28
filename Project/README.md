@@ -46,6 +46,8 @@ find / -name "*.f4m"
 
 ## 环境问题
 
+运行环境，python2.7.17
+
 file too short
 ```sh
 apt install libapr1
@@ -65,14 +67,8 @@ ln -s libapr-1.so.0.5.1 libapr-1.so.0
 - dnspython
 - numpy
 - matplotlib
+- dnslib
 
-安装pip包
-```sh
-sudo apt-get update
-apt-get install python3
-sudo  apt-get install python3-pip
-pip3 install numpy
-```
 
 安装不了dns可以安装dnspython，实现同样的效果  
 matplotlib安装问题

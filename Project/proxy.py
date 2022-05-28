@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_STREAM, SOCK_DGRAM
 import select
 import time
 import re
@@ -7,15 +7,30 @@ import sys
 import thread
 from multiprocessing import Process
 import argparse
+import dnslib
 
+
+def dnsRequest(Port, Type):
+    dns_request = dnslib.DNSRecord.question("localhost/index.html", "TXT")
+    data = dns_request.pack()
+    server_socket = socket(AF_INET, SOCK_DGRAM)
+    server_socket.sendto(data, ("127.0.0.1", Port))
+    result, addr = server_socket.recvfrom(1024)
+    answer = dnslib.DNSRecord.parse(result)
+    ports = 0
+    for resources in answer.rr:
+        if resources.rtype == Type:
+            ports = resources.rdata.data[0]
+    server_socket.close()
+    return ports
 
 class Proxy:
-    def __init__(self, soc, alpha, fake_ip, server_ip, dns_port, webserver_port):
+    def __init__(self, soc, alpha, dns_port, webserver_port):
         print('init: accepting client')
         self.client, _ = soc.accept()
         self.target = None
-        self.request_url = server_ip
-        self.fake_ip = (fake_ip, 0)
+        self.webserver_ip = '127.0.0.1'
+        self.proxy_ip = ('0.0.0.0', 0)
         self.send_count = 0
         self.recv_count = 0
         self.br = 10
@@ -26,54 +41,43 @@ class Proxy:
     def getClientRequest(self):
         # print('receving from client')
         request = self.client.recv(4096)
-        if request is None:
-            return None
         return request
 
     def connectServer(self, request):
         self.target = socket(AF_INET, SOCK_STREAM)
         # print('connecting to server')
-        self.target.bind(self.fake_ip)  # bind socket to fake ip
+        self.target.bind(self.proxy_ip)  # bind socket to fake ip
         if self.webserver_port:
-            self.target.connect((self.request_url, self.webserver_port))
+            self.target.connect((self.webserver_ip, int(self.webserver_port)))
         else:
-            webserver_port = self.dnsRequest()
-            self.target.connect((self.request_url, webserver_port))
+            self.webserver_port = dnsRequest(self.dns_port, dnslib.QTYPE.TXT)
+            print("webserver_port" + self.webserver_port)
+            self.target.connect((self.webserver_ip, int(self.webserver_port)))
         # print('sending message to server')
         self.target.send(request)
         self.communicating()
-        
-        
-    def dnsRequest(self):
-        raise NotImplementedError
-        
+
 
     def chooseBitrate(self, throughput):
         global bitrate
-        length = len(bitrate)
-        for i in range(length):
-            if throughput / 1.5 < bitrate[i]:
-                if i == 0:
-                    return bitrate[0]
-                else:
-                    return bitrate[i - 1]
-        return bitrate[length - 1]
+        for b in bitrate:
+            if throughput / 1.5 > b:
+                return b
+        return bitrate[-1]
 
     def communicating(self):
         global bitrate
         # patterns for finding corresponding information
-        pat_big_buck = re.compile(b'.f4m')
+        pat_bbb = re.compile(b'.f4m')
         pat_length = re.compile(b'Content-Length: .\w+')
-        pat_response = re.compile(b'Connection:')
-        pat_name = re.compile(b'/vod/.*Frag[0-9]*')
+        pat_name = re.compile(b'Seg[0-9]*-Frag[0-9]*')
         pat_bitrate = re.compile(b'bitrate="[0-9]*"')
-        pat_change = re.compile(b'/vod/[0-9]*')
-        # initialize parameters 
+        # initialize parameters
         inputs = [self.client, self.target]
         buff_size = 4096
         cur_count = 0
         ts = time.time()
-        chunkname = 'Not a chunk'
+        chunkname = ''
         while True:
             readable, writeable, errs = select.select(inputs, [], inputs, 20)
             if errs:
@@ -83,10 +87,10 @@ class Proxy:
                 data = soc.recv(buff_size)
                 if data:
                     if soc is self.client:
-                        # ts = time.time() # if start timer when receving request, start ts here.
+                        ts = time.time() # if start timer when receving request, start ts here.
                         self.send_count += 1
-                        result = re.search(pat_big_buck, data, flags=0)
-                        if result != None:
+                        result = re.search(pat_bbb, data, flags=0)
+                        if result != None: # if the request is for .f4m
                             data.decode()
                             real_data = data
                             data = data.replace('.f4m', '_nolist.f4m')  # request no_list.f4m instead of original .f4m
@@ -96,17 +100,19 @@ class Proxy:
                             manifest = self.target.recv(409600)
                             bitrate_list = re.findall(pat_bitrate, manifest)
                             for i in bitrate_list:
-                                print(int(i.split('"')[1]))
-                                bitrate.append(int(i.split('"')[1]))  # add received bittrates into a list
+                                bitrate.append(int(i.split('"')[1]))  # add received bitrates into a list
+                            bitrate.sort(reverse=True)
                         result = re.search(pat_name, data)
-                        if result != None:
-                            data = re.sub(pat_change, '/vod/' + str(self.br), data)
+                        if result != None: # if the request is for a chunk
+                            data.decode()
+                            data = re.sub(r'[0-9]*Seg', str(self.br) + 'Seg', data)
+                            data.encode()
                             chunkname = result.group(0)
-                            chunkname = re.sub(r'/vod/[0-9]*', '/vod/' + str(self.br), chunkname)
                         else:
-                            chunkname = 'Not a chunk'
+                            chunkname = ''
                         self.target.send(data)
                     if soc is self.target:
+                        tf = time.time()
                         # use content length and packet count to find the last packet's postion
                         result = re.search(pat_length, data, flags=0)
                         if result != None:
@@ -119,15 +125,15 @@ class Proxy:
                         if cur_count * buff_size > length:
                             cur_count = 1
                             if self.recv_count > 0:
-                                tf = time.time()
                                 dur = tf - ts
                                 thr = 8 * length / (dur) / 1024
                                 avg_thr = self.a * thr + (1 - self.a) * t_old
-                                ts = time.time()  # start ts here to have a better duration estimation
+                                # ts = time.time()  # start ts here to have a better duration estimation
                                 t_old = avg_thr
-                                if chunkname != 'Not a chunk':
-                                    log.write('%d %f %d %.1f %d %s %s\n' % (
-                                    tf, dur, thr, avg_thr, self.br, self.request_url, chunkname))
+                                if chunkname:
+                                    log.write('%d %f %d %.1f %d %s %s %s\n' % (
+                                        ts, dur, thr, avg_thr, self.br, self.webserver_ip, self.webserver_port,
+                                        chunkname))
                                     self.br = self.chooseBitrate(avg_thr)
                             else:
                                 t_old = 0
@@ -136,7 +142,7 @@ class Proxy:
                     break
         self.client.close()
         self.target.close()
-        self.log.close()
+        log.close()
 
     def run(self):
         request = self.getClientRequest()
@@ -163,9 +169,6 @@ if __name__ == '__main__':
     dns_port = args.Port
     webserver_port = args.webserverport
 
-    fake_ip = '0.0.0.0'
-    server_ip = '127.0.0.1'
-
     proxySocket = socket(AF_INET, SOCK_STREAM)
     proxySocket.bind(('', int(listen_port)))
     proxySocket.listen(10)
@@ -175,6 +178,9 @@ if __name__ == '__main__':
     while True:
         try:
             # a new thread for each connection
-            thread.start_new_thread(Proxy(proxySocket, float(a), fake_ip, server_ip, dns_port, webserver_port).run, ())
+            thread.start_new_thread(Proxy(proxySocket, float(a), int(dns_port), webserver_port).run,
+                                    ())
         except Exception as e:
+            log.close()
+            proxySocket.close()
             print(e)

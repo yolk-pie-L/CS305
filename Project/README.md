@@ -12,7 +12,12 @@ python proxy.py -l log.txt -a 0.5 -p 7777 -P 53 -s 8081
 -a alpha  
 -p listen port  
 -P DNS server port  
--s default webserver port, 可选参数  
+-s default webserver port, 可选参数 
+
+ ```sh
+ python3 netsim.py onelink run -e topology/onelink/onelink.events
+ ```
+
 
 ## docker
 

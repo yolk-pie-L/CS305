@@ -2,6 +2,7 @@ from os import popen
 import socket
 import dnslib
 from sys import exit
+import argparse
 
 
 class Round_Robin:
@@ -28,7 +29,7 @@ class Round_Robin:
         return next(self.data_rr)
 
 
-def loadServer(filepath: str) -> list:
+def loadServer(filepath):
     server = []
     with open(filepath, "r") as f:
         for line in f:
@@ -41,7 +42,7 @@ def loadServer(filepath: str) -> list:
     return server
 
 
-def kill_process(port: int, type: str):
+def kill_process(port, type):
     with popen("netstat -aon|findstr /r :" + str(port)) as res:
         res = res.read().split("\n")
     result = []
@@ -64,7 +65,14 @@ def kill_process(port: int, type: str):
 
 
 if __name__ == "__main__":
-    servers = loadServer("./project/10servers")
+
+    parser = argparse.ArgumentParser(description='start dns server')
+
+    parser.add_argument('-s', '--servers', required=True)
+
+    args = parser.parse_args()
+
+    servers = loadServer(args.servers)
     print(servers)
     rr_obj = Round_Robin(servers)
     kill_process(53, "UDP")

@@ -5,7 +5,7 @@
 ## 运行指令
 
 ```sh
-python3 proxy.py -l log.txt -a 0.5 -p 7777 -P 53 -s 8081
+python proxy.py -l log.txt -a 0.5 -p 7777 -P 53 -s 8081
 ```
 参数解析  
 -l log_file的路径  

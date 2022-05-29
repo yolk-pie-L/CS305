@@ -38,7 +38,7 @@ wait0:
 
 Case0:
 	addi 	$26, $0, 10
-	add 	$28, $25, $0 #4=number
+	add 	$4, $25, $0 #4=number
 	sll 	$30, $25, 11
 	srl 	$30, $30, 31
 	beq 	$30, $0, Case0
@@ -47,8 +47,8 @@ wait1:
 	srl		$30, $30, 31
 	bne		$30, $0, wait1
 
-	andi 	$28, $28, 0xff
-	addi 	$27, $28, -1 #2=number-1
+	andi 	$4, $4, 0xff
+	addi 	$2, $4, -1 #2=number-1
 	
 	add 	$5, $0, $0 # current id of data read in
 
@@ -68,7 +68,7 @@ wait2:
 	sw 		$16, data0($6)
 	
 	addi 	$5, $5, 1
-	beq 	$5, $28, ReadTestCase
+	beq 	$5, $4, ReadTestCase
 	j 		Read01
 	
 	
@@ -79,7 +79,7 @@ Loop10:
 	lw $7, data0($6)
 	sw $7, data1($6)
 	addi $5, $5, 1
-	bne $28, $5, Loop10
+	bne $4, $5, Loop10
 	
 	add $5, $0, $0
 	# bubble sort
@@ -97,9 +97,9 @@ Loop11: #
 		sw $17, data1($7)
 	Swap1:
 		addi $6, $6, 1
-		bne $6, $27, Loop12
+		bne $6, $2, Loop12
 	addi $5, $5, 1 
-	bne $5, $28, Loop11
+	bne $5, $4, Loop11
 	
 	j ReadTestCase
 	
@@ -118,7 +118,7 @@ Loop20:
 Store20:
 	sw $7, data2($6)
 	addi $5, $5, 1
-	bne $28, $5, Loop20
+	bne $4, $5, Loop20
 	j ReadTestCase
 	
 	
@@ -129,7 +129,7 @@ Loop30:
 	lw $7, data2($6)
 	sw $7, data3($6)
 	addi $5, $5, 1
-	bne $28, $5, Loop30
+	bne $4, $5, Loop30
 	
 	add $5, $0, $0
 	# bubble sort
@@ -147,15 +147,16 @@ Loop31: #
 		sw $17, data3($7)	
 	Swap3:
 		addi $6, $6, 1
-		bne $6, $27, Loop32
+		bne $6, $2, Loop32
 	addi $5, $5, 1 
-	bne $5, $28, Loop31
+	bne $5, $4, Loop31
 	
 	j ReadTestCase
 
 
 Case4:
 	add 	$8, $25, $0
+	addi $26, $0, 1
 	sll 	$30, $25, 11
 	srl 	$30, $30, 31
 	beq 	$30, $0, Case4
@@ -169,13 +170,13 @@ wait3:
 	beq		$9, $8, Case43
 
 	lw	 	$16, data1($0)
-	addi 	$5, $28, -1
+	addi 	$5, $4, -1
 	sll 	$5, $5, 2
 	lw 		$17, data1($5)
 	j 		Out40
 Case43:
 	lw 		$16, data3($0)
-	addi 	$5, $28, -1
+	addi 	$5, $4, -1
 	sll 	$5, $5, 2
 	lw 		$17, data3($5)
 Out40:
@@ -195,6 +196,7 @@ Case5:
 	add 	$8, $8, $0
 Read50:
 	add 	$8, $25, $0 # id of dataset
+	addi $26, $0, 1
 	sll 	$30, $25, 11
 	srl 	$30, $30, 31
 	beq 	$30, $0, Read50
@@ -205,6 +207,7 @@ wait5:
 
 Read51:
 	add 	$9, $25, $0 # id of data
+	addi $26, $0, 2
 	sll 	$30, $25, 11
 	srl 	$30, $30, 31
 	beq 	$30, $0, Read51
@@ -226,7 +229,6 @@ Case51:
 	srl		$30, $30, 31
 	beq 	$30, $0, Case51
 wait7:
-	addi 	$26, $26, 0xf
 	sll 	$30, $25, 11
 	srl		$30, $30, 31
 	bne		$30, $0, wait7
@@ -240,7 +242,6 @@ Case53:
 	srl		$30, $30, 31
 	beq 	$30, $0, Case53
 wait8:
-	addi 	$26, $26, 0xf
 	sll 	$30, $25, 11
 	srl		$30, $30, 31
 	bne		$30, $0, wait8
@@ -248,6 +249,7 @@ wait8:
 	
 Case6:	
 	add 	$17, $25, $0 # 17=id of dataset
+	addi $26, $0, 1
 	sll 	$30, $25, 11
 	srl 	$30, $30, 31
 	beq 	$30, $0, Case6
@@ -257,6 +259,7 @@ wait9:
 	bne		$30, $0, wait9
 	andi 	$17, $17, 0xff
 Read62:
+	addi $26, $0, 2
 	add 	$18, $25, $0 # 18=id
 	sll 	$30, $25, 11
 	srl 	$30, $30, 31
@@ -303,6 +306,7 @@ wait11:
 	
 Case7:
 	add 	$1, $25, $0 #1=id
+	addi $26, $0, 2
 	sll 	$30, $25, 11
 	srl		$30, $30, 31
 	beq		$30, $0, Case7
@@ -313,9 +317,9 @@ wait12:
 
 	andi	$1, $1, 0xff
 	sll 	$1, $1, 2
-	lw		$27, data0($1)
-	add		$20, $27, $0
-	andi  	$27, $27, 0xff
+	lw		$2, data0($1)
+	add		$20, $2, $0
+	andi  	$2, $2, 0xff
 	 
 	add	$21, $20,$0  # $20=original data, $21=symbol bit
 	srl		$21, $21,8
@@ -333,14 +337,14 @@ Loop70:	addi	$22, $22,1
 Loop71:
 	addi 	$3, $0, 1
 	sll 	$3, $3, 25
-	add		$28, $0, $0
+	add		$4, $0, $0
 Loop711:
-	add 	$26, $27, $0
-	addi	$28, $28, 1
-	bne		$28, $3, Loop711
-	add 	$28, $0, $0
+	add 	$26, $2, $0
+	addi	$4, $4, 1
+	bne		$4, $3, Loop711
+	add 	$4, $0, $0
 Loop712:
 	add 	$26, $22, $0
-	addi 	$28, $28, 1
-	bne		$28, $3, Loop712
+	addi 	$4, $4, 1
+	bne		$4, $3, Loop712
 	j 		Loop71

@@ -198,7 +198,8 @@ wait11:
 
 Case7:sll	$11, $11, 16
 	sra		$11, $11, 16
-	srav	$26, $11, $12
+	srav	$3, $11, $12
+	andi $26, $3, 0xffff
 	sll 	$30, $25, 11
 	srl		$30, $30, 31
 	beq 	$30, $0, Case7

@@ -13,7 +13,27 @@ python proxy.py -l log.txt -a 0.5 -p 7777 -P 53 -s 8081
 -p listen port  
 -P DNS server port  
 -s default webserver port, 可选参数 
+  
+运行netsim.py
 
+```
+cd /root/CS305-proj/docker_setup/netsim
+./netsim.py servers start -s servers/2servers
+```
+
+
+运行netsim.py
+
+```
+cd /root/CS305-proj/docker_setup/netsim
+./netsim.py servers start -s servers/2servers
+```
+
+
+
+```sh
+python3 netsim.py onelink start
+```
  ```sh
  python3 netsim.py onelink run -e topology/onelink/onelink.events
  ```
@@ -27,14 +47,6 @@ python proxy.py -l log.txt -a 0.5 -p 7777 -P 53 -s 8081
 docker run -it -p 7778:7778 -p 7779:7779 project:latest /bin/bash
 ```
 
-
-
-运行netsim.py
-
-```
-cd /root/CS305-proj/docker_setup/netsim
-./netsim.py servers start -s servers/2servers
-```
 
 ## Linux
 

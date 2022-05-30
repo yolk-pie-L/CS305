@@ -276,7 +276,7 @@ wait10:
 	addi 	$19,$0,3
 	beq 	$17,$19,Case63
 Case61:	lw 	$20,data1($18)
-	add		$21, $0, $0
+	srl		$21, $20, 7
 	j 		Branch0
 Case62:	lw 	$20, data2($18)
 	j 		Out60
@@ -291,7 +291,6 @@ Branch0:sll	$21, $21, 8
 Loop6:	addi	$22, $22,1
 	srl		$20, $20,1
 	bne		$20, $0, Loop6
-	sll		$21, $21, 8
 	or 		$22, $22, $21
 Out61:
 	add		$26, $22, $0
@@ -322,16 +321,13 @@ wait12:
 	andi  	$2, $2, 0xff
 	 
 	add	$21, $20,$0  # $20=original data, $21=symbol bit
-	srl		$21, $21,8
-	beq		$21, $0,Branch1
-	addi	$21, $0,1
-	sub		$20, $0,$20
+	srl		$21, $21,7
+	andi		$20, $20,0x7f
 Branch1:sll	$21, $21, 8
 	addi	$22, $0,126
 Loop70:	addi	$22, $22,1
 	srl		$20, $20,1
 	bne		$20, $0, Loop70
-	sll		$21, $21, 8
 	or 		$22, $22, $21 # float representation
 
 Loop71:

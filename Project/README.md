@@ -20,16 +20,7 @@ python proxy.py -l log.txt -a 0.5 -p 7777 -P 53 -s 8081
 cd /root/CS305-proj/docker_setup/netsim
 ./netsim.py servers start -s servers/2servers
 ```
-
-
-运行netsim.py
-
-```
-cd /root/CS305-proj/docker_setup/netsim
-./netsim.py servers start -s servers/2servers
-```
-
-
+改变带宽
 
 ```sh
 python3 netsim.py onelink start

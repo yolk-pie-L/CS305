@@ -87,7 +87,7 @@ class Proxy:
                 data = soc.recv(buff_size)
                 if data:
                     if soc is self.client:
-                        ts = time.time() # if start timer when receving request, start ts here.
+                        # ts = time.time() # if start timer when receving request, start ts here.
                         self.send_count += 1
                         result = re.search(pat_bbb, data, flags=0)
                         if result != None: # if the request is for .f4m
@@ -110,6 +110,7 @@ class Proxy:
                             chunkname = result.group(0)
                         else:
                             chunkname = ''
+
                         self.target.send(data)
                     if soc is self.target:
                         tf = time.time()
@@ -128,9 +129,10 @@ class Proxy:
                                 dur = tf - ts
                                 thr = 8 * length / (dur) / 1024
                                 avg_thr = self.a * thr + (1 - self.a) * t_old
-                                # ts = time.time()  # start ts here to have a better duration estimation
+                                ts = time.time()  # start ts here to have a better duration estimation
                                 t_old = avg_thr
-                                if chunkname:
+                                print("chunkname"+"("+chunkname+")")
+                                if chunkname != '':
                                     log.write('%d %f %d %.1f %d %s %s %s\n' % (
                                         ts, dur, thr, avg_thr, self.br, self.webserver_ip, self.webserver_port,
                                         chunkname))

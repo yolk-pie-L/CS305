@@ -270,17 +270,21 @@ wait10:
 	bne		$30, $0, wait10
 	andi	$18, $18, 0xff
 
+	add $22, $22, $0
 	sll		$18,$18,2
 	addi 	$19,$0,2
 	beq 	$17,$19,Case62
 	addi 	$19,$0,3
 	beq 	$17,$19,Case63
 Case61:	lw 	$20,data1($18)
-	srl		$21, $20, 7
+	beq $20, $0, Out61
+	add		$21, $0, $0
 	j 		Branch0
 Case62:	lw 	$20, data2($18)
+	beq $20, $0, Out61
 	j 		Out60
 Case63:	lw 	$20, data3($18)
+	beq $20, $0, Out61
 Out60:	add	$21, $20, $0  # $20=original data, $21=symbol bit
 	srl		$21, $21,8
 	beq		$21, $0,Branch0
@@ -317,6 +321,8 @@ wait12:
 	andi	$1, $1, 0xff
 	sll 	$1, $1, 2
 	lw		$2, data0($1)
+	add $22, $0, $0
+	beq $2, $0, Loop71
 	add		$20, $2, $0
 	andi  	$2, $2, 0xff
 	 

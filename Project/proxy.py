@@ -136,8 +136,8 @@ class Proxy:
                 t_new = B * 8 / dur / 1024
                 self.thr = t_new * self.a + (1 - a) * self.thr
                 self.br = self.chooseBitrate(self.thr)
-                log.write('%d %f %d %.1f %d %s %s %s\n' % (
-                    ts, dur, t_new, self.thr, self.br, self.webserver_ip, self.webserver_port, chunkname))
+                log.write('%d %f %d %d %d %s %s\n' % (
+                    ts, dur, t_new, int(self.thr), self.br, self.webserver_port, chunkname))
                 continue
 
              # if the request is for other files

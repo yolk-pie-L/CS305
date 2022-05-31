@@ -81,16 +81,21 @@ ln -s libapr-1.so.0.5.1 libapr-1.so.0
 - numpy
 - matplotlib
 - dnslib
+- eventlet
 
 
 安装不了dns可以安装dnspython，实现同样的效果  
 matplotlib安装问题
 https://blog.csdn.net/qq_41221841/article/details/123114200
 
+
+## 其他
+
 VScode中打开代码
 ```sh
 code /com.docker.devenvironments.code/docker_setup/www/vod/big_buck_bunny.f4m
 ```
+
 
 ## 参考代码
 

@@ -61,6 +61,18 @@ class Proxy:
     def recvFromApache(self):
         buff_size = 1024
         data = self.target.recv(buff_size)
+        pat_length = re.compile(b'Content-Length: .\w+')
+        result = re.search(pat_length, data, flags=0)
+        if result != None:
+            length = int(result.group(0)[16:])
+            if len(data) < buff_size and len(data) > length:
+                return data
+            while True:
+                tempt = self.target.recv(buff_size)
+                data += tempt
+                if len(tempt) < buff_size and len(data) > length:
+                    print('apache length'+str(len(data)))
+                    return data         
         if len(data) < buff_size:
             return data
         while True:
@@ -69,20 +81,6 @@ class Proxy:
             if len(tempt) < buff_size:
                 break
         print('apache length'+str(len(data)))
-        # buff_size = 8192
-        # pat_length = re.compile(b'Content-Length: .\w+')
-        # data = self.target.recv(buff_size)
-        # result = re.search(pat_length, data, flags=0)
-        # cur_count = 0
-        # if result != None:
-        #     length = int(result.group(0)[16:])
-        #     print("apache length"+str(length))
-        #     cur_count = 1
-        #     while cur_count * buff_size < length:
-        #         data += self.target.recv(buff_size)
-        #         cur_count = cur_count + 1
-        # else:
-            # print("no length field")
         return data
 
 

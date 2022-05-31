@@ -8,7 +8,10 @@ import thread
 from multiprocessing import Process
 import argparse
 import dnslib
+import eventlet
+import sys
 
+record = []
 
 def dnsRequest(Port, Type):
     dns_request = dnslib.DNSRecord.question("localhost/index.html", "TXT")
@@ -24,6 +27,7 @@ def dnsRequest(Port, Type):
     server_socket.close()
     return ports
 
+
 class Proxy:
     def __init__(self, soc, alpha, dns_port, webserver_port):
         print('init: accepting client')
@@ -36,6 +40,8 @@ class Proxy:
         self.a = alpha
         self.dns_port = dns_port
         self.webserver_port = webserver_port
+        self.number = -1
+        self.thread_stop = False
 
     def connectServer(self):
         self.target = socket(AF_INET, SOCK_STREAM)
@@ -50,9 +56,10 @@ class Proxy:
         # print('sending message to server')
         self.communicating()
 
-
     def chooseBitrate(self, throughput):
         global bitrate
+        if len(bitrate)==0:
+            return 10
         for b in bitrate:
             if throughput / 1.5 > b:
                 return b
@@ -71,8 +78,8 @@ class Proxy:
                 tempt = self.target.recv(buff_size)
                 data += tempt
                 if len(tempt) < buff_size and len(data) > length:
-                    print('apache length'+str(len(data)))
-                    return data         
+                    # print('apache length' + str(len(data)))
+                    return data
         if len(data) < buff_size:
             return data
         while True:
@@ -80,9 +87,8 @@ class Proxy:
             data += tempt
             if len(tempt) < buff_size:
                 break
-        print('apache length'+str(len(data)))
+        # print('apache length' + str(len(data)))
         return data
-
 
     def sendToClient(self, data):
         self.client.sendall(data)
@@ -98,54 +104,64 @@ class Proxy:
         buff_size = 4096
         ts = time.time()
         chunkname = ''
-        while True:
-            data = self.client.recv(buff_size)
-            result = re.search(pat_bbb, data, flags=0)
-            if result != None: # if the request is for .f4m
-                data.decode()
-                real_data = data
-                print("request f4m")
-                data = data.replace('.f4m', '_nolist.f4m')  # request no_list.f4m instead of original .f4m
-                data.encode()
-                real_data.encode()
-                self.target.send(real_data)
-                manifest = self.recvFromApache()
-                bitrate_list = re.findall(pat_bitrate, manifest)
-                for i in bitrate_list:
-                    bitrate.append(int(i.split('"')[1]))  # add received bitrates into a list
-                bitrate.sort(reverse=True)
-                self.target.send(data)
-                fakefile = self.recvFromApache()
-                self.sendToClient(fakefile)
-                continue
+        while not self.thread_stop:
+            time_limit = 1
+            self.thread_stop = True
+            with eventlet.Timeout(time_limit, False):
+                data = self.client.recv(buff_size)
+                result = re.search(pat_bbb, data, flags=0)
+                if result != None:  # if the request is for .f4m
+                    data.decode()
+                    real_data = data
+                    print("request f4m")
+                    data = data.replace('.f4m', '_nolist.f4m')  # request no_list.f4m instead of original .f4m
+                    data.encode()
+                    real_data.encode()
+                    self.target.send(real_data)
+                    manifest = self.recvFromApache()
+                    bitrate_list = re.findall(pat_bitrate, manifest)
+                    for i in bitrate_list:
+                        bitrate.append(int(i.split('"')[1]))  # add received bitrates into a list
+                    bitrate.sort(reverse=True)
+                    self.target.send(data)
+                    fakefile = self.recvFromApache()
+                    self.sendToClient(fakefile)
+                    self.thread_stop = False
+                    continue
 
-            result = re.search(pat_name, data)
-            if result != None: # if the request is for a chunk
-                ts = time.time()
-                data.decode()
-                data = re.sub(r'[0-9]*Seg', str(self.br) + 'Seg', data)
-                print(data)
-                data.encode()
-                chunkname = result.group(0)
+                result = re.search(pat_name, data)
+                if result != None:  # if the request is for a chunk
+                    if self.number == -1:
+                        self.number =len(record)
+                        record.append(False)
+                    ts = time.time()
+                    data.decode()
+                    data = re.sub(r'[0-9]*Seg', str(self.br) + 'Seg', data)
+                    # print(data)
+                    data.encode()
+                    chunkname = result.group(0)
+                    self.target.send(data)
+                    recv_data = self.recvFromApache()
+                    tf = time.time()
+                    self.sendToClient(recv_data)
+                    dur = tf - ts
+                    B = len(recv_data)
+                    t_new = B * 8 / dur / 1024
+                    self.thr = t_new * self.a + (1 - a) * self.thr
+                    self.br = self.chooseBitrate(self.thr)
+                    log.write('%d %f %d %d %d %s %s\n' % (
+                        ts, dur, t_new, int(self.thr), self.br, self.webserver_port, chunkname))
+                    self.thread_stop = False
+                    continue
+
+                # if the request is for other files
                 self.target.send(data)
                 recv_data = self.recvFromApache()
-                tf = time.time()
                 self.sendToClient(recv_data)
-                dur = tf - ts
-                B = len(recv_data)
-                t_new = B * 8 / dur / 1024
-                self.thr = t_new * self.a + (1 - a) * self.thr
-                self.br = self.chooseBitrate(self.thr)
-                log.write('%d %f %d %d %d %s %s\n' % (
-                    ts, dur, t_new, int(self.thr), self.br, self.webserver_port, chunkname))
-                continue
+            print("stop one")
+            if self.number != -1:
+                record[self.number] = True
 
-             # if the request is for other files
-            self.target.send(data)
-            recv_data = self.recvFromApache()
-            self.sendToClient(recv_data)
-
-            
         # self.client.close()
         # self.target.close()
         # log.close()
@@ -179,11 +195,23 @@ if __name__ == '__main__':
     bitrate = []
     print('start')
 
-    while True:
+    stop = False
+
+    while not stop:
         try:
+            if len(record) > 2:
+                stop = True
+                for i in record:
+                    if not i:
+                        stop = False
+            print(record)
+            with eventlet.Timeout(1, False):
+                print("inin")
             # a new thread for each connection
-            thread.start_new_thread(Proxy(proxySocket, float(a), int(dns_port), webserver_port).run,
+                thread.start_new_thread(Proxy(proxySocket, float(a), int(dns_port), webserver_port).run,
                                     ())
+                print("outout")
+
         except Exception as e:
             log.close()
             proxySocket.close()

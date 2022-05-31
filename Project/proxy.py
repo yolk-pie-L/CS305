@@ -13,6 +13,7 @@ import sys
 
 record = []
 
+
 def dnsRequest(Port, Type):
     dns_request = dnslib.DNSRecord.question("localhost/index.html", "TXT")
     data = dns_request.pack()
@@ -58,7 +59,7 @@ class Proxy:
 
     def chooseBitrate(self, throughput):
         global bitrate
-        if len(bitrate)==0:
+        if len(bitrate) == 0:
             return 10
         for b in bitrate:
             if throughput / 1.5 > b:
@@ -132,7 +133,7 @@ class Proxy:
                 result = re.search(pat_name, data)
                 if result != None:  # if the request is for a chunk
                     if self.number == -1:
-                        self.number =len(record)
+                        self.number = len(record)
                         record.append(False)
                     ts = time.time()
                     data.decode()
@@ -158,12 +159,12 @@ class Proxy:
                 self.target.send(data)
                 recv_data = self.recvFromApache()
                 self.sendToClient(recv_data)
-            print("stop one")
-            if self.number != -1:
-                record[self.number] = True
+        print("stop one")
+        if self.number != -1:
+            record[self.number] = True
 
-        # self.client.close()
-        # self.target.close()
+        self.client.close()
+        self.target.close()
         # log.close()
 
     def run(self):
@@ -199,7 +200,7 @@ if __name__ == '__main__':
 
     while not stop:
         try:
-            if len(record) > 2:
+            if len(record) > 0:
                 stop = True
                 for i in record:
                     if not i:
@@ -207,12 +208,15 @@ if __name__ == '__main__':
             print(record)
             with eventlet.Timeout(1, False):
                 print("inin")
-            # a new thread for each connection
+                # a new thread for each connection
                 thread.start_new_thread(Proxy(proxySocket, float(a), int(dns_port), webserver_port).run,
-                                    ())
+                                        ())
                 print("outout")
 
         except Exception as e:
             log.close()
             proxySocket.close()
             print(e)
+
+    log.close()
+    proxySocket.close()
